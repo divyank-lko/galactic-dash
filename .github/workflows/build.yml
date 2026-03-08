@@ -23,6 +23,20 @@ jobs:
           unzip -q gradle.zip
           echo "$PWD/gradle-8.0/bin" >> $GITHUB_PATH
 
+      - name: Create missing resources
+        run: |
+          mkdir -p app/src/main/res/values
+          mkdir -p app/src/main/res/mipmap-hdpi
+          cat > app/src/main/res/values/themes.xml << 'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+            <style name="Theme.GalacticDash" parent="Theme.AppCompat.NoActionBar">
+              <item name="android:windowBackground">#05050f</item>
+            </style>
+          </resources>
+          EOF
+          curl -s "https://via.placeholder.com/48x48/000000/000000.png" -o app/src/main/res/mipmap-hdpi/ic_launcher.png
+
       - name: Move game file to assets
         run: mkdir -p app/src/main/assets && cp galactic-dash.html app/src/main/assets/
 
