@@ -17,31 +17,39 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Install Gradle directly
+      - name: Install Gradle
         run: |
           wget -q https://services.gradle.org/distributions/gradle-8.0-bin.zip -O gradle.zip
           unzip -q gradle.zip
           echo "$PWD/gradle-8.0/bin" >> $GITHUB_PATH
 
-      - name: Create missing resources
+      - name: Create all resources
         run: |
           mkdir -p app/src/main/res/values
           mkdir -p app/src/main/res/mipmap-hdpi
-          cat > app/src/main/res/values/themes.xml << 'EOF'
+          mkdir -p app/src/main/res/mipmap-mdpi
+          mkdir -p app/src/main/res/mipmap-xhdpi
+          mkdir -p app/src/main/res/mipmap-xxhdpi
+          mkdir -p app/src/main/assets
+          cp galactic-dash.html app/src/main/assets/
+          cat > app/src/main/res/values/themes.xml << 'XMLEOF'
           <?xml version="1.0" encoding="utf-8"?>
           <resources>
             <style name="Theme.GalacticDash" parent="Theme.AppCompat.NoActionBar">
               <item name="android:windowBackground">#05050f</item>
             </style>
           </resources>
-          EOF
-          curl -s "https://via.placeholder.com/48x48/000000/000000.png" -o app/src/main/res/mipmap-hdpi/ic_launcher.png
-
-      - name: Move game file to assets
-        run: mkdir -p app/src/main/assets && cp galactic-dash.html app/src/main/assets/
+          XMLEOF
+          python3 -c "
+          import base64, os
+          png = base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAIAAADYYG7QAAAABmJLR0QA/wD/AP+gvaeTAAAADklEQVRIie3BMQEAAADCoPVP7WsIoAAAeAMBxAABHgAAAABJRU5ErkJggg==')
+          for d in ['mipmap-hdpi','mipmap-mdpi','mipmap-xhdpi','mipmap-xxhdpi']:
+              open(f'app/src/main/res/{d}/ic_launcher.png','wb').write(png)
+          print('Icons created')
+          "
 
       - name: Build APK
-        run: gradle assembleDebug --stacktrace
+        run: gradle assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
